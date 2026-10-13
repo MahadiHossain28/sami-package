@@ -1,0 +1,438 @@
+# samipack — JavaScript Functions Documentation
+
+A collection of jQuery functions for server-rendered web applications: toast notifications, image preview, loading data into a form, submitting a form with AJAX, a delete confirmation modal, and dependent selects.
+
+## Requirements
+
+Load these on the page before samipack:
+
+- **jQuery** — from [jsDelivr](https://www.jsdelivr.com/package/npm/jquery) or [cdnjs](https://cdnjs.com/libraries/jquery).
+- **Bootstrap** (CSS and JS) — used for buttons, utility classes, and the modals you pass as `modalId`. Load jQuery before Bootstrap's JS so that `$('#id').modal('show')` is available.
+- **Font Awesome 6** — used for the toast icons.
+
+The AJAX functions follow Laravel conventions: a `<meta name="csrf-token">` tag, and validation errors returned with status 422 as `{ "errors": { "field": ["message"] } }`.
+
+## How to Add
+
+1. Add the CSS:
+
+```html
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/MahadiHossain28/samiPackage/dist/css/samipack.min.css">
+```
+
+2. Add the JS, after jQuery. For everything:
+
+```html
+<script src="https://cdn.jsdelivr.net/gh/MahadiHossain28/samiPackage/dist/js/sami-all.min.js"></script>
+```
+
+Or include only the services you need:
+
+| You want | File in `dist/js/` |
+|---|---|
+| Everything | `sami-all.js` |
+| Toasts only (`cus_toast_auto`, `sami_Toast_Append`) | `sami-toaster-services.js` |
+| Image preview only (`image_preview`) | `sami-image-preview-service.js` |
+| AJAX (`handleGetData`, `handleSubmit`, `handleDelete`) — toasts are included | `sami-ajax-services.js` |
+| Dependent select only (`handleDependentSelect`) | `other-services.js` |
+
+jsDelivr serves a minified copy of any file when you add `.min` before the extension, as in the URLs above.
+
+## Functions List
+
+1. [cus_toast_auto(options)](#1-cus_toast_autooptions)
+2. [sami_Toast_Append(options)](#2-sami_toast_appendoptions)
+3. [image_preview()](#3-image_preview)
+4. [handleGetData(options)](#4-handlegetdataoptions)
+5. [handleSubmit(formData, options)](#5-handlesubmitformdata-options)
+6. [handleDelete(options)](#6-handledeleteoptions)
+7. [handleDependentSelect(options)](#7-handledependentselectoptions)
+8. [The `confirm` option](#the-confirm-option)
+
+---
+
+### 1. cus_toast_auto(options)
+
+**Description:** Animates a toast that is already in the page's HTML, such as a flash message rendered by the server. It shows the toast, runs the progress bar, and removes it when the time is up. Hovering pauses the timer. It also sets the toast colours for the whole page.
+
+**Parameters:**
+
+| Option | Type | Default | Description |
+|---|---|---|---|
+| `cus_toast_time` | number | `5000` | How long the toast stays visible, in milliseconds. |
+| `cus_toast_top` | string | `"25px"` | Distance from the top of the viewport. |
+| `cus_toast_bg` | string | `"#f2f2f2"` | Background colour of the toast. |
+| `cus_toast_border` | string | `"#008080"` | Border and progress bar colour. |
+| `cus_toast_success_bg` | string | `"#198754"` | Icon background and title colour for success. |
+| `cus_toast_success_icon` | string | `"#ffffff"` | Icon colour for success. |
+| `cus_toast_alert_bg` | string | `"#b3a022"` | Icon background and title colour for alert. |
+| `cus_toast_alert_icon` | string | `"#1b1b1b"` | Icon colour for alert. |
+| `cus_toast_error_bg` | string | `"#dc3545"` | Icon background and title colour for error. |
+| `cus_toast_error_icon` | string | `"#ffffff"` | Icon colour for error. |
+| `cus_toast_text` | string | `"#666666"` | Message text colour. |
+
+**Required HTML:** an element with the class `cus_toast`. For an alert use `fa-triangle-exclamation alert` and `cus_alert`; for an error use `fa-xmark error` and `cus_error`.
+
+```html
+@if (session('success'))
+<div class="cus_toast">
+    <div class="cus_toast-content">
+        <i class="fa-solid fa-check success"></i>
+        <div class="message">
+            <span class="cus_success">Success</span>
+            <span class="text text-2">{{ session('success') }}</span>
+        </div>
+    </div>
+    <i class="fa-solid fa-xmark sami_close"></i>
+    <div class="progress"></div>
+</div>
+@endif
+```
+
+**Usage Example:**
+
+```javascript
+$(document).ready(function () {
+    $(document).cus_toast_auto({
+        cus_toast_time: 3000,
+        cus_toast_top: "50px",
+        cus_toast_bg: "#fff",
+        cus_toast_text: "#333"
+    });
+});
+```
+
+---
+
+### 2. sami_Toast_Append(options)
+
+**Description:** Creates a toast from JavaScript and shows it. No HTML is needed. The AJAX functions below use it for their own messages.
+
+**Parameters:**
+
+| Option | Type | Default | Description |
+|---|---|---|---|
+| `cus_toast_status` | string | `'success'` | `'success'`, `'alert'`, or `'error'`. Any other value shows nothing. |
+| `cus_toast_time` | number | `5000` | How long the toast stays visible, in milliseconds. |
+| `cus_toast_msg` | string | `"Hello"` | The message. It is inserted as HTML, so do not pass unescaped user input. |
+
+**Usage Example:**
+
+```javascript
+$(document).sami_Toast_Append({
+    cus_toast_status: 'success',
+    cus_toast_time: 3000,
+    cus_toast_msg: 'Operation successful!'
+});
+```
+
+The toast colours come from the CSS variables that `cus_toast_auto` sets. If your page never calls `cus_toast_auto`, define them once in your own CSS:
+
+```css
+:root {
+    --cus_toast_top: 25px;
+    --cus_toast_bg: #f2f2f2;
+    --cus_toast_border: #008080;
+    --cus_toast_success_bg: #198754;
+    --cus_toast_success_icon: #ffffff;
+    --cus_toast_alert_bg: #b3a022;
+    --cus_toast_alert_icon: #1b1b1b;
+    --cus_toast_error_bg: #dc3545;
+    --cus_toast_error_icon: #ffffff;
+    --cus_toast_text: #666666;
+}
+```
+
+---
+
+### 3. image_preview()
+
+**Description:** Opens a full-screen preview of an image, with a close button. Call it on the `<img>` element; it reads the image from the element's `src`. It takes no options.
+
+The stylesheet provides two helper classes for thumbnails: `image_view` (100 × 100 px with a pointer cursor) and `image_view_pointer` (pointer cursor only).
+
+**Usage Example:**
+
+```html
+<img src="/uploads/photo.jpg" class="image_view" alt="photo">
+```
+
+```javascript
+$(document).on('click', '.image_view', function () {
+    $(this).image_preview();
+});
+```
+
+---
+
+### 4. handleGetData(options)
+
+**Description:** Sends a GET request and uses the response to fill form fields, show an image, and open a modal. It is typically used for an "Edit" button. The URL is read from the **`value` attribute** of the element you call it on.
+
+**Parameters:**
+
+| Option | Type | Default | Description |
+|---|---|---|---|
+| `returnFromApi` | string | `''` | The key in the JSON response that holds the record, e.g. `'data'` for `{ "data": { ... } }`. Required with `valuesId`, `imagePrev`, or `cloudImagePrev`. |
+| `valuesId` | object | `null` | Maps response fields to input IDs: `{ responseField: 'inputId' }`. Each input's value is set from the record. |
+| `modalId` | string | `null` | ID of a Bootstrap modal to show after the data arrives. |
+| `successCallback` | function | `null` | Called with the full response. Required when `valuesId` is not given. |
+| `imagePrev` | boolean | `false` | Show an image stored on your server. The `src` is `imagePath` + the value of `dbImgColName`. |
+| `cloudImagePrev` | boolean | `false` | Show an image whose full URL is stored in `dbImgColName`. |
+| `dbImgColName` | string | `''` | The response field that holds the image file name or URL. |
+| `imagePath` | string | `''` | Folder prefix for `imagePrev`, e.g. `'/storage/products/'`. |
+| `imagePrevClass` | string | `'w-100'` | CSS class added to the preview image. |
+| `confirm` | boolean / object | `null` | Ask before sending the request. See [The `confirm` option](#the-confirm-option). |
+
+The image preview is placed inside the element with the class `prev_image_view`.
+
+**Usage Example:**
+
+```html
+<button type="button" class="editButton" value="{{ route('products.edit', $product->id) }}">Edit</button>
+
+<div class="modal fade" id="editModal">
+    <div class="modal-dialog"><div class="modal-content"><div class="modal-body">
+        <form id="updateForm" action="{{ route('products.update') }}">
+            <input type="hidden" id="edit_id" name="id">
+            <input type="text" id="edit_name" name="name" class="form-control">
+            <div class="prev_image_view"></div>
+            <button type="submit" class="btn btn-primary">Update</button>
+        </form>
+    </div></div></div>
+</div>
+```
+
+```javascript
+$(document).on('click', '.editButton', function () {
+    $(this).handleGetData({
+        modalId: 'editModal',
+        returnFromApi: 'data',
+        valuesId: {
+            id: 'edit_id',       // response.data.id   -> #edit_id
+            name: 'edit_name',   // response.data.name -> #edit_name
+        },
+        imagePrev: true,
+        dbImgColName: 'image',
+        imagePath: '/storage/products/',
+    });
+});
+```
+
+The server responds with:
+
+```json
+{ "data": { "id": 5, "name": "Widget", "image": "widget.jpg" } }
+```
+
+To handle the response yourself, leave out `valuesId` and pass a callback:
+
+```javascript
+$(this).handleGetData({
+    successCallback: function (response) {
+        console.log(response);
+    }
+});
+```
+
+Invalid options are reported as an alert toast, and a failed request as an error toast.
+
+---
+
+### 5. handleSubmit(formData, options)
+
+**Description:** Submits a form with AJAX. On success it shows a success toast, closes the modal, and refreshes part of the page. On a validation error it marks the invalid fields. The URL is read from the form's **`action` attribute**.
+
+**Parameters:**
+
+| Parameter | Type | Default | Description |
+|---|---|---|---|
+| `formData` | FormData | — | The data to send. Required. |
+| `options.methodType` | string | `'POST'` | `'POST'`, `'PUT'`, `'PATCH'`, or `'DELETE'`. |
+| `options.modalId` | string | `null` | ID of the Bootstrap modal that contains the form. It is closed and its content reloaded after success. |
+| `options.listName` | string | `null` | Class name of the list or table to reload after success. |
+| `options.samiToastDuration` | number | `3000` | How long the result toast stays visible, in milliseconds. |
+| `options.beforeSendCallback` | function | `null` | Called before the request is sent, e.g. to disable the submit button. |
+| `options.successCallback` | function | `null` | Called with the response on success. |
+| `options.completeCallBack` | function | `null` | Called when the request finishes, whether it succeeded or failed. |
+| `options.confirm` | boolean / object | `null` | Ask before submitting. See [The `confirm` option](#the-confirm-option). |
+
+**What the server should return:**
+
+- **Success:** JSON with an optional `msg`, shown in the toast. Without it the toast reads "Saved successfully".
+- **Validation error:** status 422 with `{ "errors": { "name": ["The name field is required."] } }`. For each field, the element with the ID `name` gets the class `is-invalid`, and the element with the class `name_error` shows the first message.
+- **Any other error:** shown as an error toast with the status code.
+
+**How the refresh works:** `modalId` and `listName` are refreshed by fetching the current page again and replacing only that element's content. They must therefore be rendered by the server at the current URL.
+
+**Usage Example:**
+
+```html
+<table class="productList"> ... </table>
+
+<form id="createForm" action="{{ route('products.store') }}">
+    @csrf
+    <input type="text" id="name" name="name" class="form-control">
+    <span class="text-danger error_message name_error"></span>
+    <button type="submit" class="btn btn-primary">Save</button>
+</form>
+```
+
+```javascript
+$(document).on('submit', '#createForm', function (e) {
+    e.preventDefault();
+    let formData = new FormData(this);
+
+    $(this).handleSubmit(formData, {
+        modalId: 'createModal',
+        listName: 'productList',
+        beforeSendCallback: function () {
+            $('#createForm button[type=submit]').prop('disabled', true);
+        },
+        completeCallBack: function () {
+            $('#createForm button[type=submit]').prop('disabled', false);
+        },
+    });
+});
+```
+
+**Updating with Laravel:** PHP does not read `FormData` sent as a real `PUT` or `PATCH` request. Keep `methodType: 'POST'` and add `@method('PUT')` inside the form instead.
+
+---
+
+### 6. handleDelete(options)
+
+**Description:** Opens a confirmation modal before deleting a record. The modal is created automatically; you do not write any HTML for it. The delete URL is read from the **`value` attribute** of the element you call it on.
+
+**Attributes on the trigger element:**
+
+| Attribute | Description |
+|---|---|
+| `value` | The delete URL. Required. |
+| `data-value-name` | Name of the record, shown in the message: "Are You Sure To Delete **Widget** ?" |
+| `data-value-image` | Image URL to preview in the modal. Optional. |
+
+**Parameters:**
+
+| Option | Type | Default | Description |
+|---|---|---|---|
+| `method` | boolean | `false` | `false`: the confirm button is a link, so the URL is opened with GET. `true`: the confirm button submits a form with `_method=DELETE` and the CSRF token, for a Laravel `DELETE` route. |
+| `msg` | string | `null` | Text before the record name. Defaults to "Are You Sure To Delete". |
+| `note` | string / false | `'This action cannot be undone.'` | Small text under the message. `false` hides it. |
+| `buttonLabel` | string | `'Yes, Delete'` | Label of the confirm button. |
+| `actionBtn` | boolean | `true` | `false` hides the confirm button and leaves only Close. |
+| `icon` | string / false | `'warning'` | `'trash'`, `'warning'`, `'success'`, `'info'`, or `false` for no icon. |
+| `imagePrevClass` | string | `'w-100'` | CSS class added to the preview image. |
+
+With `method: true` the page must contain `<meta name="csrf-token" content="{{ csrf_token() }}">`.
+
+**Usage Example:**
+
+```html
+<button type="button" class="deleteButton"
+        value="{{ route('products.destroy', $product->id) }}"
+        data-value-name="{{ $product->name }}"
+        data-value-image="{{ asset('storage/products/' . $product->image) }}">
+    Delete
+</button>
+```
+
+```javascript
+$(document).on('click', '.deleteButton', function () {
+    $(this).handleDelete({
+        method: true,
+        icon: 'trash',
+    });
+});
+```
+
+Invalid options are reported as an alert toast.
+
+---
+
+### 7. handleDependentSelect(options)
+
+**Description:** Shows only the elements that belong to the value selected in a parent `<select>`, and hides the rest. Typical use: pick a country, then see only its cities. Call it on the parent select.
+
+**Parameters:**
+
+| Option | Type | Default | Description |
+|---|---|---|---|
+| `className` | string | `null` | Class shared by all the dependent elements. |
+| `attributeName` | string | `null` | Attribute on each dependent element that holds its parent's value. |
+
+Every element with that class and attribute gets the `hidden` attribute; those whose attribute equals the selected value have it removed.
+
+**Usage Example:**
+
+```html
+<select id="country">
+    <option value="">Select country</option>
+    <option value="1">Bangladesh</option>
+    <option value="2">Japan</option>
+</select>
+
+<select id="city">
+    <option value="">Select city</option>
+    <option class="cityOption" data-country="1" value="10" hidden>Dhaka</option>
+    <option class="cityOption" data-country="1" value="11" hidden>Chattogram</option>
+    <option class="cityOption" data-country="2" value="20" hidden>Tokyo</option>
+</select>
+```
+
+```javascript
+$(document).on('change', '#country', function () {
+    $('#city').val('');
+    $(this).handleDependentSelect({
+        className: 'cityOption',
+        attributeName: 'data-country'
+    });
+});
+```
+
+---
+
+### The `confirm` option
+
+`handleGetData` and `handleSubmit` accept a `confirm` option. When it is set, a confirmation modal opens first and the request is sent only if the user confirms.
+
+Use `confirm: true` for the default modal, or pass an object to customise it:
+
+| Key | Type | Default | Description |
+|---|---|---|---|
+| `msg` | string | `'Are you sure?'` | The question. |
+| `note` | string | none | Small text under the question. |
+| `confirmLabel` | string | `'Yes, Continue'` | Label of the confirm button. |
+| `closeLabel` | string | `'No, Cancel'` | Label of the cancel button. |
+| `confirmClass` | string | `'btn btn-primary'` | CSS classes of the confirm button. |
+| `icon` | string / false | `'info'` | `'trash'`, `'warning'`, `'success'`, `'info'`, or `false`. |
+
+An empty object (`confirm: {}`) is rejected; use `confirm: true` instead.
+
+**Usage Example:**
+
+```javascript
+$(this).handleSubmit(formData, {
+    listName: 'productList',
+    confirm: {
+        msg: 'Publish this product?',
+        note: 'Customers will see it immediately.',
+        confirmLabel: 'Yes, Publish',
+        icon: 'warning',
+    },
+});
+```
+
+---
+
+## Development
+
+Edit files in `src/` only. `dist/` is generated:
+
+```sh
+./build.sh
+```
+
+`src/js/sami-modal.js` and `src/js/sami-services-validation.js` are internal helpers. They are not shipped as separate files; the build merges them into `dist/js/sami-ajax-services.js` and `dist/js/sami-all.js`. The built AJAX file also contains the toaster, since the AJAX functions report through toasts.
+
+A new source file must be added to `build.sh` to be included in the output.

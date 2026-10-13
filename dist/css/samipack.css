@@ -1,0 +1,370 @@
+/* Google Font Import - Poppins */
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap');
+
+/** {*/
+/*    margin: 0;*/
+/*    padding: 0;*/
+/*    box-sizing: border-box;*/
+/*    font-family: 'Poppins', sans-serif;*/
+/*}*/
+
+/*body {*/
+/*    overflow-x: hidden;*/
+/*}*/
+
+/* -------- Custom Toast CSS Start -------- */
+.cus_toast,
+.cus_toast1 {
+    position: fixed;
+    top: var(--cus_toast_top);
+    right: 30px;
+    border-radius: 12px;
+    background: var(--cus_toast_bg);
+    padding: 20px 35px 20px 25px;
+    box-shadow: 0 5px 10px rgba(0, 0, 0, 0.1);
+    border-left: 6px solid var(--cus_toast_border);
+    overflow: hidden;
+    transform: translateX(calc(100% + 30px));
+    transition: all 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.35);
+    /* transition: all 0.5s linear; */
+    z-index: 2000;
+    /* display: none;
+    opacity: 0; */
+    font-family: 'Poppins', sans-serif;
+}
+
+.cus_toast.active,
+.cus_toast1.active {
+    /* display: block;
+    opacity: 1; */
+    transform: translateX(0%);
+}
+
+.cus_toast .cus_toast-content,
+.cus_toast1 .cus_toast-content {
+    display: flex;
+    align-items: center;
+}
+
+.cus_toast-content .success,
+.cus_toast-content .alert,
+.cus_toast-content .error {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 35px;
+    width: 35px;
+    border-radius: 50%;
+    margin-right: 15px;
+}
+
+.cus_toast-content .success {
+    background-color: var(--cus_toast_success_bg);
+    color: var(--cus_toast_success_icon);
+    font-size: 20px;
+}
+
+.cus_toast-content .error {
+    background-color: var(--cus_toast_error_bg);
+    color: var(--cus_toast_error_icon);
+    font-size: 25px;
+}
+
+.cus_toast-content .alert {
+    background-color: var(--cus_toast_alert_bg);
+    color: var(--cus_toast_alert_icon);
+    font-size: 18px;
+    margin-bottom: 0;
+}
+
+.cus_toast-content .message {
+    display: flex;
+    flex-direction: column;
+    padding: 0 15px;
+    border-left: 2px solid var(--cus_toast_border);
+}
+
+.message .text {
+    font-size: 15px;
+    font-weight: 400;
+    color: var(--cus_toast_text);
+}
+
+.message .cus_success {
+    font-weight: 600;
+    color: var(--cus_toast_success_bg);
+}
+
+.message .cus_error {
+    font-weight: 600;
+    color: var(--cus_toast_error_bg);
+}
+
+.message .cus_alert {
+    font-weight: 600;
+    color: var(--cus_toast_alert_bg);
+}
+
+.cus_toast .sami_close,
+.cus_toast1 .sami_close1 {
+    position: absolute;
+    top: 10px;
+    right: 15px;
+    padding: 5px;
+    font-size: 16px;
+    cursor: pointer;
+    pointer-events: auto;
+    opacity: 0.7;
+}
+
+.cus_toast .sami_close:hover,
+.cus_toast1 .sami_close1:hover {
+    opacity: 1;
+}
+
+.cus_toast .progress,
+.cus_toast1 .progress {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    height: 3px;
+    width: 100%;
+    background: #ddd;
+}
+
+.cus_toast .progress:before,
+.cus_toast1 .progress:before {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    right: 0;
+    height: 100%;
+    width: 100%;
+    background-color: var(--cus_toast_border);
+}
+
+.progress.active:before {
+    animation: progress var(--cus_toast_time) linear forwards;
+}
+
+@keyframes progress {
+    100% {
+        right: 100%;
+    }
+}
+
+/* button {
+    padding: 12px 20px;
+    font-size: 20px;
+    outline: none;
+    border: none;
+    background-color: #4070f4;
+    color: #fff;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: 0.3s;
+}
+
+button:hover {
+    background-color: #0e4bf1;
+}
+
+.toast.active~button {
+    pointer-events: none;
+} */
+
+/* -------- Custom Toast CSS End -------- */
+
+/* -------- Custom Image Preview CSS Start -------- */
+
+.image_view {
+    width: 100px;
+    height: 100px;
+    cursor: pointer;
+}
+
+.image_view_pointer {
+    cursor: pointer;
+}
+
+#FullImageView {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.9);
+    text-align: center;
+    z-index: 1200;
+    justify-content: center;
+    align-items: center;
+}
+
+#FullImage {
+    padding: 24px;
+    max-width: 98%;
+    max-height: 98%;
+}
+
+#FullImageViewCloseBtn {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    font-size: 3.5rem;
+    color: #ffffff;
+    cursor: pointer;
+}
+
+/* -------- Custom Image Preview CSS End -------- */
+
+/* -------- Custom Modal For Alert CSS Start -------- */
+.sami-modal {
+    position: fixed;
+    inset: 0;
+    z-index: 9999;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 1rem;
+    background: rgba(0, 0, 0, .5);
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity .2s ease, visibility .2s ease;
+}
+
+.sami-modal.is-open {
+    opacity: 1;
+    visibility: visible;
+}
+
+.sami-modal__dialog {
+    position: relative;
+    width: 100%;
+    max-width: 420px;
+    max-height: 90vh;
+    overflow-y: auto;
+    padding: 1.5rem;
+    text-align: center;
+    background: #fff;
+    border-radius: .5rem;
+    transform: translateY(-20px);
+    transition: transform .2s ease;
+}
+
+.sami-modal.is-open .sami-modal__dialog {
+    transform: translateY(0);
+}
+
+/* .sami-modal__close {
+    position: absolute;
+    top: .5rem;
+    right: .75rem;
+    border: 0;
+    background: none;
+    font-size: 1.5rem;
+    line-height: 1;
+    cursor: pointer;
+} */
+
+body.sami-modal-open {
+    overflow: hidden;
+}
+
+.sami-modal__icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 72px;
+    height: 72px;
+    margin: 0 auto 1rem;
+    border-radius: 50%;
+    background: #fdecec;
+    color: #dc3545;
+}
+
+.sami-modal__icon:empty {
+    display: none;
+}
+
+.sami-modal__icon svg {
+    width: 36px;
+    height: 36px;
+}
+
+.sami-modal.is-open .sami-modal__icon {
+    animation: sami-icon-pop .3s ease;
+}
+
+@keyframes sami-icon-pop {
+    0%   { transform: scale(.6); opacity: 0; }
+    70%  { transform: scale(1.08); }
+    100% { transform: scale(1); opacity: 1; }
+}
+
+.sami-modal__icon--warning { background: #fff4e0; color: #f59f00; }
+.sami-modal__icon--success { background: #e6f7ec; color: #28a745; }
+.sami-modal__icon--info    { background: #e7f1ff; color: #0d6efd; }
+
+/* -------- Custom Modal For Delete CSS End -------- */
+
+@media screen and (max-width: 376px) {
+    .cus_toast,
+    .cus_toast1 {
+        right: 12px;
+        padding: 15px 15px 20px 15px;
+    }
+
+    .cus_toast.active,
+    .cus_toast1.active {
+        transform: translateX(2%);
+    }
+}
+
+/*new added*/
+@media screen and (min-width: 576px) and (max-width: 768px) {
+    .form-container {
+        width: 60% !important;
+    }
+}
+
+@media screen and (min-width: 280px) and (max-width: 575px) {
+    .form-container {
+        width: 100% !important;
+    }
+}
+
+@media screen and (max-width: 620px) {
+    .responsiveTable thead {
+        display: none;
+    }
+
+    .responsiveTable tr {
+        border: 1px solid #d5d5d5;
+        text-align: left;
+    }
+
+    .responsiveTable tr td {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        border-bottom: none;
+        padding: 0.75rem 1rem;
+        align-items: center;
+        word-wrap: break-word;
+    }
+
+    .responsiveTable tr td::before {
+        content: attr(data-cell) " : ";
+        text-transform: capitalize;
+        font-weight: 700;
+    }
+
+    .responsiveTable tr td img {
+        width: 100%;
+    }
+
+    .responsiveTableRow {
+        grid-template-columns: minmax(0, auto) !important;
+    }
+
+}
