@@ -424,15 +424,3 @@ $(this).handleSubmit(formData, {
 ```
 
 ---
-
-## Development
-
-Edit files in `src/` only. `dist/` is generated:
-
-```sh
-./build.sh
-```
-
-`src/js/sami-modal.js` and `src/js/sami-services-validation.js` are internal helpers. They are not shipped as separate files; the build merges them into `dist/js/sami-ajax-services.js` and `dist/js/sami-all.js`. The built AJAX file also contains the toaster, since the AJAX functions report through toasts.
-
-A new source file must be added to `build.sh` to be included in the output.
