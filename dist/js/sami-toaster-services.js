@@ -13,28 +13,87 @@
         cus_toast_text: "#666666",
     };
 
+    const P = "samiToast";
+
+    // Set once config() has accepted a set of options.
+    let configured = false;
+
+    function fail(msg) {
+        throw new Error(`${P}: ${msg}`);
+    }
+
+    // config() usually runs before <body> exists, when a toast cannot be shown, so the console gets it too.
+    function report(error) {
+        alert(error.message);
+    }
+
+    function validateConfig(options) {
+        if (options === undefined) {
+            fail("config needs an options object. Use $.samiToast.config({}) for the defaults.");
+        }
+
+        if (options === null || typeof options !== "object" || Array.isArray(options)) {
+            fail("config options must be an object.");
+        }
+
+        $.each(options, function (key, value) {
+            if (!Object.prototype.hasOwnProperty.call(defaults, key)) {
+                fail(`Unknown config option '${key}'. Use ${Object.keys(defaults).join(', ')}.`);
+            }
+
+            if (key === "cus_toast_time") {
+                if (typeof value !== "number" || !isFinite(value) || value <= 0) {
+                    fail("cus_toast_time must be a positive number of milliseconds.");
+                }
+            } else if (typeof value !== "string" || value.trim() === "") {
+                fail(`${key} must be a non-empty string, e.g. '${defaults[key]}'.`);
+            }
+        });
+    }
+
     $.samiToast = {
         config: function (options) {
-            if (options) {
-                let css = {};
-                $.each(defaults, function (key, defaultValue) {
-                    if (Object.prototype.hasOwnProperty.call(options, key)) {
-                        defaults[key] = options[key];
-                    }
-                    if (key !== "cus_toast_time") {
-                        css["--" + key] = defaults[key];
-                    }
-                });
-                $(":root").css(css);
+            // Invalid options change nothing: the current settings stay in place.
+            try {
+                validateConfig(options);
+            } catch (error) {
+                report(error);
+                return $.extend({}, defaults);
             }
+
+            $.each(defaults, function (key) {
+                if (Object.prototype.hasOwnProperty.call(options, key)) {
+                    defaults[key] = options[key];
+                }
+            });
+            configured = true;
+
             return $.extend({}, defaults);
+        },
+
+        // Current values, without changing anything.
+        settings: function () {
+            return $.extend({}, defaults);
+        },
+
+        isConfigured: function () {
+            return configured;
+        },
+
+        // Used by the toast plugins: false, with an alert toast, until config() has been called.
+        requireConfig: function (plugin) {
+            if (configured) return true;
+            report(new Error(`${plugin}: call $.samiToast.config({...}) before showing a toast.`));
+            return false;
         },
     };
 })(jQuery);
 
 (function ($) {
     $.fn.cus_toast_auto = function (options) {
-        let settings = $.extend({}, $.samiToast.config(), options);
+        if (!$.samiToast.requireConfig("cus_toast_auto")) return;
+
+        let settings = $.extend({}, $.samiToast.settings(), options);
 
         let progress_time = 300;
         let end_time = settings.cus_toast_time + progress_time;
@@ -107,58 +166,52 @@
 })(jQuery);
 
 (function ($) {
+
+    // Inline SVG, sized by the parent's font-size and coloured by its text colour, like an icon font.
+    const SVG_OPEN = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="1em" height="1em" aria-hidden="true"';
+    const STROKE = ' fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round">';
+
+    const ICONS = {
+        check: SVG_OPEN + STROKE + '<path d="M4 12.5l5 5L20 6.5"/></svg>',
+        xmark: SVG_OPEN + STROKE + '<path d="M6 6l12 12M18 6L6 18"/></svg>',
+        triangle: SVG_OPEN + ' fill="currentColor"><path fill-rule="evenodd" d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0zM11 9h2v5h-2zM12 15.9a1.1 1.1 0 1 0 0 2.2 1.1 1.1 0 0 0 0-2.2z"/></svg>',
+    };
+
     $.fn.sami_Toast_Append = function (options) {
+        if (!$.samiToast.requireConfig("sami_Toast_Append")) return;
+
+        $.samiToast.show(options);
+    };
+
+    // Renders the toast with no config check, so the config error itself can be shown.
+    $.samiToast.show = function (options) {
         let settings = $.extend(
             {
                 cus_toast_status: 'success',
-                cus_toast_time: $.samiToast.config().cus_toast_time,
+                cus_toast_time: $.samiToast.settings().cus_toast_time,
                 cus_toast_msg: "Hello",
             },
             options
         );
-        if (settings.cus_toast_status === 'success') {
-            $("body").prepend(`
-                <div class="cus_toast1">
-                    <div class="cus_toast-content">
-                        <i class="fa-solid fa-check success"></i>
-                        <div class="message">
-                            <span class="cus_success">Success</span>
-                            <span class="text text-2">${settings.cus_toast_msg}</span>
-                        </div>
-                    </div>
-                    <i class="fa-solid fa-xmark sami_close1"></i>
-                    <div class="progress"></div>
-                </div>
-            `);
-        }
+        // Icon and title for each status. Any other status shows nothing.
+        const statuses = {
+            success: { icon: ICONS.check, title: 'Success' },
+            alert: { icon: ICONS.triangle, title: 'Alert' },
+            error: { icon: ICONS.xmark, title: 'Error' },
+        };
+        const status = settings.cus_toast_status;
 
-        if(settings.cus_toast_status === 'alert') {
+        if (Object.prototype.hasOwnProperty.call(statuses, status)) {
             $("body").prepend(`
                 <div class="cus_toast1">
                     <div class="cus_toast-content">
-                        <i class="fa-solid fa-triangle-exclamation alert"></i>
+                        <span class="${status}">${statuses[status].icon}</span>
                         <div class="message">
-                            <span class="cus_alert">Alert</span>
+                            <span class="cus_${status}">${statuses[status].title}</span>
                             <span class="text text-2">${settings.cus_toast_msg}</span>
                         </div>
                     </div>
-                    <i class="fa-solid fa-xmark sami_close1"></i>
-                    <div class="progress"></div>
-                </div>
-            `);
-        }
-
-        if(settings.cus_toast_status === 'error') {
-            $("body").prepend(`
-                <div class="cus_toast1">
-                    <div class="cus_toast-content">
-                        <i class="fa-solid fa-xmark error"></i>
-                        <div class="message">
-                            <span class="cus_error">Error</span>
-                            <span class="text text-2">${settings.cus_toast_msg}</span>
-                        </div>
-                    </div>
-                    <i class="fa-solid fa-xmark sami_close1"></i>
+                    <span class="sami_close1">${ICONS.xmark}</span>
                     <div class="progress"></div>
                 </div>
             `);

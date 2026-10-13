@@ -77,6 +77,10 @@
     margin-bottom: 0;
 }
 
+.cus_toast1 svg {
+    display: block;
+}
+
 .cus_toast-content .message {
     display: flex;
     flex-direction: column;

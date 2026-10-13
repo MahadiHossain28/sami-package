@@ -8,7 +8,7 @@ Load these on the page before samipack:
 
 - **jQuery** — from [jsDelivr](https://www.jsdelivr.com/package/npm/jquery) or [cdnjs](https://cdnjs.com/libraries/jquery).
 - **Bootstrap** (CSS and JS) — used for buttons, utility classes, and the modals you pass as `modalId`. Load jQuery before Bootstrap's JS so that `$('#id').modal('show')` is available.
-- **Font Awesome 6** — used for the toast icons.
+- **Font Awesome 6** — only for the toast HTML you write yourself for `cus_toast_auto`. Toasts created by `sami_Toast_Append`, including those from the AJAX functions, use built-in SVG icons and do not need it.
 
 The AJAX functions follow Laravel conventions: a `<meta name="csrf-token">` tag, and validation errors returned with status 422 as `{ "errors": { "field": ["message"] } }`.
 
@@ -58,24 +58,126 @@ jsDelivr serves a minified copy of any file when you add `.min` before the exten
 
 **Description:** Animates a toast that is already in the page's HTML, such as a flash message rendered by the server. It shows the toast, runs the progress bar, and removes it when the time is up. Hovering pauses the timer.
 
-**Parameters:** the same options as [Toast settings](#toast-settings), all optional. An option you leave out takes the value from `$.samiToast.config`. `cus_toast_time` applies to this toast only; the colours and position apply to the whole page.
+**Parameters:** the same options as [Toast settings](#toast-settings), all optional. `$.samiToast.config` must have been called first. An option you leave out takes the value from `$.samiToast.config`. `cus_toast_time` applies to this toast only; the colours and position apply to the whole page.
 
-**Required HTML:** an element with the class `cus_toast`. For an alert use `fa-triangle-exclamation alert` and `cus_alert`; for an error use `fa-xmark error` and `cus_error`.
+**Required HTML for Blade:** an element with the class `cus_toast`. Copy this html code into a blade file like `massage.blade.php`. Then call this file using `@include('massage')` on your master blade. there are two option select any one from below.
+
+**Option 1.** Copy this code. 
 
 ```html
-@if (session('success'))
-<div class="cus_toast">
-    <div class="cus_toast-content">
-        <i class="fa-solid fa-check success"></i>
-        <div class="message">
-            <span class="cus_success">Success</span>
-            <span class="text text-2">{{ session('success') }}</span>
+@if(Session::has('success'))
+    <!-- Custom Toast For Success Start-->
+    <div class="cus_toast">
+        <div class="cus_toast-content">
+            <span class="success">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="1em" height="1em" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12.5l5 5L20 6.5"/></svg>
+            </span>
+
+            <div class="message">
+                <span class="cus_success">Success</span>
+                <span class="text text-2">{{ Session::get('success') }}</span>
+            </div>
         </div>
+        <span class="sami_close">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="1em" height="1em" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"><path d="M6 6l12 12M18 6L6 18"/></svg>
+        </span>
+
+        <div class="progress"></div>
     </div>
-    <i class="fa-solid fa-xmark sami_close"></i>
-    <div class="progress"></div>
-</div>
+    <!-- Custom Toast For Success End -->
 @endif
+
+@if(Session::has('alert'))
+    <!-- Custom Toast For Alert Start-->
+    <div class="cus_toast">
+        <div class="cus_toast-content">
+            <span class="success">
+
+            </span>
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="1em" height="1em" aria-hidden="true" fill="currentColor"><path fill-rule="evenodd" d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0zM11 9h2v5h-2zM12 15.9a1.1 1.1 0 1 0 0 2.2 1.1 1.1 0 0 0 0-2.2z"/></svg>
+
+            <div class="message">
+                <span class="cus_alert">Alert</span>
+                <span class="text text-2">{{ Session::get('alert') }}</span>
+            </div>
+        </div>
+        <span class="sami_close">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="1em" height="1em" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"><path d="M6 6l12 12M18 6L6 18"/></svg>
+        </span>
+
+        <div class="progress"></div>
+    </div>
+    <!-- Custom Toast For Alert End -->
+@endif
+
+@if(Session::has('error'))
+    <!-- Custom Toast For Error Start-->
+    <div class="cus_toast">
+        <div class="cus_toast-content">
+            <span class="error">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="1em" height="1em" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"><path d="M6 6l12 12M18 6L6 18"/></svg>
+            </span>
+
+            <div class="message">
+                <span class="cus_error">Error</span>
+                <span class="text">{{ Session::get('error') }}</span>
+            </div>
+        </div>
+        <span class="sami_close">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="1em" height="1em" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"><path d="M6 6l12 12M18 6L6 18"/></svg>
+        </span>
+
+        <div class="progress"></div>
+    </div>
+    <!-- Custom Toast For Error End -->
+@endif
+```
+
+**Option 2.** Copy this code. 
+
+```html
+@php
+    $types = [
+        'success' => ['label' => 'Success', 'text' => 'text text-2'],
+        'alert'   => ['label' => 'Alert',   'text' => 'text text-2'],
+        'error'   => ['label' => 'Error',   'text' => 'text'],
+    ];
+
+    $stroke = 'fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"';
+
+    $icons = [
+        'success' => '<path d="M4 12.5l5 5L20 6.5"/>',
+        'error'   => '<path d="M6 6l12 12M18 6L6 18"/>',
+        'alert'   => '<path fill-rule="evenodd" d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0zM11 9h2v5h-2zM12 15.9a1.1 1.1 0 1 0 0 2.2 1.1 1.1 0 0 0 0-2.2z"/>',
+    ];
+@endphp
+
+@foreach($types as $type => $config)
+    @if(Session::has($type))
+        <div class="cus_toast">
+            <div class="cus_toast-content">
+                <span class="{{ $type }}">
+                    @if($type === 'alert')
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="1em" height="1em" aria-hidden="true" fill="currentColor">{!! $icons['alert'] !!}</svg>
+                    @else
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="1em" height="1em" aria-hidden="true" {!! $stroke !!}>{!! $icons[$type] !!}</svg>
+                    @endif
+                </span>
+
+                <div class="message">
+                    <span class="cus_{{ $type }}">{{ $config['label'] }}</span>
+                    <span class="{{ $config['text'] }}">{{ Session::get($type) }}</span>
+                </div>
+            </div>
+
+            <span class="sami_close">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="1em" height="1em" aria-hidden="true" {!! $stroke !!}>{!! $icons['error'] !!}</svg>
+            </span>
+
+            <div class="progress"></div>
+        </div>
+    @endif
+@endforeach
 ```
 
 **Usage Example:**
@@ -116,7 +218,7 @@ $(document).sami_Toast_Append({
 });
 ```
 
-The toast gets its colours and position from [Toast settings](#toast-settings). If your page never calls `cus_toast_auto`, call `$.samiToast.config` once before showing a toast; otherwise the toast has no colours.
+The toast gets its colours and position from [Toast settings](#toast-settings). Call `$.samiToast.config` once before showing a toast; without it, an alert toast with an error message is shown instead of yours.
 
 ---
 
@@ -124,9 +226,11 @@ The toast gets its colours and position from [Toast settings](#toast-settings). 
 
 **`$.samiToast.config(options)`**
 
-**Description:** Sets the values that both toast functions share. Call it once, any time after samipack has loaded; it does not need to wait for the page to be ready. A page that calls `cus_toast_auto` does not need it, because `cus_toast_auto` applies the same values.
+**Description:** Sets the values that both toast functions share. Call it once, any time after samipack has loaded; it does not need to wait for the page to be ready. It is required: until it has been called with valid options, `cus_toast_auto` and `sami_Toast_Append` show an alert toast with an error message instead of doing their work. That includes the toasts the AJAX functions show.
 
-**Parameters:** pass only the options you want to change; the rest keep their defaults. To use every default, pass an empty object: `$.samiToast.config({})`. Calling it with no argument applies nothing.
+**Parameters:** pass only the options you want to change; the rest keep their defaults. To use every default, pass an empty object: `$.samiToast.config({})`. Calling it with no argument is an error.
+
+**Invalid input:** a missing options argument, options that are not an object, an unknown option name, a `cus_toast_time` that is not a positive number, or any other option that is not a non-empty string is reported and ignored, and the current settings stay as they were. The message goes to the browser console and, once the page body exists, to an alert toast.
 
 | Option | Type | Default | Description |
 |---|---|---|---|
@@ -144,7 +248,7 @@ The toast gets its colours and position from [Toast settings](#toast-settings). 
 
 `cus_toast_time` becomes the default for `cus_toast_auto` and `sami_Toast_Append` when they are called without their own `cus_toast_time`. The AJAX functions set their own toast times, so it does not change those.
 
-**Returns:** an object with the current values. Call it with no argument to read them.
+**Returns:** an object with the current values. To read them without changing anything, call `$.samiToast.settings()`.
 
 **Usage Example:**
 
