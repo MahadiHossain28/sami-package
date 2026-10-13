@@ -31,9 +31,10 @@ Or include only the services you need:
 | You want | File in `dist/js/` |
 |---|---|
 | Everything | `sami-all.js` |
-| Toasts only (`cus_toast_auto`, `sami_Toast_Append`) | `sami-toaster-services.js` |
+| Toasts only (`cus_toast_auto`, `sami_Toast_Append`, `$.samiToast.config`) | `sami-toaster-services.js` |
 | Image preview only (`image_preview`) | `sami-image-preview-service.js` |
-| AJAX (`handleGetData`, `handleSubmit`, `handleDelete`) — toasts are included | `sami-ajax-services.js` |
+| Submit button loading only (`samiBtnLoading`) | `sami-btn-loading.js` |
+| AJAX (`handleGetData`, `handleSubmit`, `handleDelete`) — toasts and `samiBtnLoading` are included | `sami-ajax-services.js` |
 | Dependent select only (`handleDependentSelect`) | `other-services.js` |
 
 jsDelivr serves a minified copy of any file when you add `.min` before the extension, as in the URLs above.
@@ -48,28 +49,16 @@ jsDelivr serves a minified copy of any file when you add `.min` before the exten
 6. [handleDelete(options)](#6-handledeleteoptions)
 7. [handleDependentSelect(options)](#7-handledependentselectoptions)
 8. [The `confirm` option](#the-confirm-option)
+9. [Toast settings](#toast-settings) — `$.samiToast.config(options)`
+10. [Submit button loading](#submit-button-loading) — `samiBtnLoading(loading)`, `$.samiBtnLoading.config(options)`
 
 ---
 
 ### 1. cus_toast_auto(options)
 
-**Description:** Animates a toast that is already in the page's HTML, such as a flash message rendered by the server. It shows the toast, runs the progress bar, and removes it when the time is up. Hovering pauses the timer. It also sets the toast colours for the whole page.
+**Description:** Animates a toast that is already in the page's HTML, such as a flash message rendered by the server. It shows the toast, runs the progress bar, and removes it when the time is up. Hovering pauses the timer.
 
-**Parameters:**
-
-| Option | Type | Default | Description |
-|---|---|---|---|
-| `cus_toast_time` | number | `5000` | How long the toast stays visible, in milliseconds. |
-| `cus_toast_top` | string | `"25px"` | Distance from the top of the viewport. |
-| `cus_toast_bg` | string | `"#f2f2f2"` | Background colour of the toast. |
-| `cus_toast_border` | string | `"#008080"` | Border and progress bar colour. |
-| `cus_toast_success_bg` | string | `"#198754"` | Icon background and title colour for success. |
-| `cus_toast_success_icon` | string | `"#ffffff"` | Icon colour for success. |
-| `cus_toast_alert_bg` | string | `"#b3a022"` | Icon background and title colour for alert. |
-| `cus_toast_alert_icon` | string | `"#1b1b1b"` | Icon colour for alert. |
-| `cus_toast_error_bg` | string | `"#dc3545"` | Icon background and title colour for error. |
-| `cus_toast_error_icon` | string | `"#ffffff"` | Icon colour for error. |
-| `cus_toast_text` | string | `"#666666"` | Message text colour. |
+**Parameters:** the same options as [Toast settings](#toast-settings), all optional. An option you leave out takes the value from `$.samiToast.config`. `cus_toast_time` applies to this toast only; the colours and position apply to the whole page.
 
 **Required HTML:** an element with the class `cus_toast`. For an alert use `fa-triangle-exclamation alert` and `cus_alert`; for an error use `fa-xmark error` and `cus_error`.
 
@@ -97,6 +86,7 @@ $(document).ready(function () {
         cus_toast_time: 3000,
         cus_toast_top: "50px",
         cus_toast_bg: "#fff",
+        cus_toast_border: "#008080",
         cus_toast_text: "#333"
     });
 });
@@ -113,7 +103,7 @@ $(document).ready(function () {
 | Option | Type | Default | Description |
 |---|---|---|---|
 | `cus_toast_status` | string | `'success'` | `'success'`, `'alert'`, or `'error'`. Any other value shows nothing. |
-| `cus_toast_time` | number | `5000` | How long the toast stays visible, in milliseconds. |
+| `cus_toast_time` | number | `5000`, or the value from `$.samiToast.config` | How long the toast stays visible, in milliseconds. |
 | `cus_toast_msg` | string | `"Hello"` | The message. It is inserted as HTML, so do not pass unescaped user input. |
 
 **Usage Example:**
@@ -126,21 +116,47 @@ $(document).sami_Toast_Append({
 });
 ```
 
-The toast colours come from the CSS variables that `cus_toast_auto` sets. If your page never calls `cus_toast_auto`, define them once in your own CSS:
+The toast gets its colours and position from [Toast settings](#toast-settings). If your page never calls `cus_toast_auto`, call `$.samiToast.config` once before showing a toast; otherwise the toast has no colours.
 
-```css
-:root {
-    --cus_toast_top: 25px;
-    --cus_toast_bg: #f2f2f2;
-    --cus_toast_border: #008080;
-    --cus_toast_success_bg: #198754;
-    --cus_toast_success_icon: #ffffff;
-    --cus_toast_alert_bg: #b3a022;
-    --cus_toast_alert_icon: #1b1b1b;
-    --cus_toast_error_bg: #dc3545;
-    --cus_toast_error_icon: #ffffff;
-    --cus_toast_text: #666666;
-}
+---
+
+### Toast settings
+
+**`$.samiToast.config(options)`**
+
+**Description:** Sets the values that both toast functions share. Call it once, any time after samipack has loaded; it does not need to wait for the page to be ready. A page that calls `cus_toast_auto` does not need it, because `cus_toast_auto` applies the same values.
+
+**Parameters:** pass only the options you want to change; the rest keep their defaults. To use every default, pass an empty object: `$.samiToast.config({})`. Calling it with no argument applies nothing.
+
+| Option | Type | Default | Description |
+|---|---|---|---|
+| `cus_toast_time` | number | `5000` | How long the toast stays visible, in milliseconds. |
+| `cus_toast_top` | string | `"25px"` | Distance from the top of the viewport. |
+| `cus_toast_bg` | string | `"#f2f2f2"` | Background colour of the toast. |
+| `cus_toast_border` | string | `"#008080"` | Border and progress bar colour. |
+| `cus_toast_success_bg` | string | `"#198754"` | Icon background and title colour for success. |
+| `cus_toast_success_icon` | string | `"#ffffff"` | Icon colour for success. |
+| `cus_toast_alert_bg` | string | `"#b3a022"` | Icon background and title colour for alert. |
+| `cus_toast_alert_icon` | string | `"#1b1b1b"` | Icon colour for alert. |
+| `cus_toast_error_bg` | string | `"#dc3545"` | Icon background and title colour for error. |
+| `cus_toast_error_icon` | string | `"#ffffff"` | Icon colour for error. |
+| `cus_toast_text` | string | `"#666666"` | Message text colour. |
+
+`cus_toast_time` becomes the default for `cus_toast_auto` and `sami_Toast_Append` when they are called without their own `cus_toast_time`. The AJAX functions set their own toast times, so it does not change those.
+
+**Returns:** an object with the current values. Call it with no argument to read them.
+
+**Usage Example:**
+
+```javascript
+$.samiToast.config({
+    cus_toast_time: 3000,
+    cus_toast_top: "50px",
+    cus_toast_border: "#008080"
+});
+
+$(document).sami_Toast_Append({ cus_toast_msg: 'Saved' }); // uses these values
+$(document).cus_toast_auto();                              // and so does this
 ```
 
 ---
@@ -252,10 +268,11 @@ Invalid options are reported as an alert toast, and a failed request as an error
 | `options.modalId` | string | `null` | ID of the Bootstrap modal that contains the form. It is closed and its content reloaded after success. |
 | `options.listName` | string | `null` | Class name of the list or table to reload after success. |
 | `options.samiToastDuration` | number | `3000` | How long the result toast stays visible, in milliseconds. |
-| `options.beforeSendCallback` | function | `null` | Called before the request is sent, e.g. to disable the submit button. |
+| `options.beforeSendCallback` | function | `null` | Called before the request is sent. With `loadingButton`, the submit button is already in its loading state. |
 | `options.successCallback` | function | `null` | Called with the response on success. |
-| `options.completeCallBack` | function | `null` | Called when the request finishes, whether it succeeded or failed. |
+| `options.completeCallBack` | function | `null` | Called when the request finishes, whether it succeeded or failed. With `loadingButton`, the submit button has already been restored. |
 | `options.confirm` | boolean / object | `null` | Ask before submitting. See [The `confirm` option](#the-confirm-option). |
+| `options.loadingButton` | boolean | `false` | `true` disables the form's submit button and shows its loader while the request runs. Requires a `$.samiBtnLoading.config(...)` call first; see [Submit button loading](#submit-button-loading). |
 
 **What the server should return:**
 
@@ -274,7 +291,10 @@ Invalid options are reported as an alert toast, and a failed request as an error
     @csrf
     <input type="text" id="name" name="name" class="form-control">
     <span class="text-danger error_message name_error"></span>
-    <button type="submit" class="btn btn-primary">Save</button>
+    <button type="submit" class="btn btn-primary">
+        <span class="submitBtnDetails">Save</span>
+        <span class="submitBtnLoading" style="display: none;">Saving...</span>
+    </button>
 </form>
 ```
 
@@ -286,17 +306,67 @@ $(document).on('submit', '#createForm', function (e) {
     $(this).handleSubmit(formData, {
         modalId: 'createModal',
         listName: 'productList',
-        beforeSendCallback: function () {
-            $('#createForm button[type=submit]').prop('disabled', true);
-        },
-        completeCallBack: function () {
-            $('#createForm button[type=submit]').prop('disabled', false);
-        },
     });
 });
 ```
 
 **Updating with Laravel:** PHP does not read `FormData` sent as a real `PUT` or `PATCH` request. Keep `methodType: 'POST'` and add `@method('PUT')` inside the form instead.
+
+---
+
+### Submit button loading
+
+**`samiBtnLoading(loading)`**
+
+**Description:** Puts a form's submit button into its loading state, or takes it out again. Call it on the form. `handleSubmit` calls it for you when you pass `loadingButton: true`: on before the request is sent, off when the request completes. For every other form, either turn on `setAsGlobal` (below) or call it yourself.
+
+**Parameters:**
+
+| Parameter | Type | Default | Description |
+|---|---|---|---|
+| `loading` | boolean | `true` | `true` disables the button and shows the loader. `false` enables the button and hides the loader. |
+
+**HTML it works on,** all inside the form:
+
+- `button[type="submit"]` — disabled while loading.
+- `.submitBtnLoading` — optional. Shown while loading. Hide it at first with `style="display: none;"`.
+- `.submitBtnDetails` — the normal button label. Hidden while loading, but only when the form has a `.submitBtnLoading` element.
+
+**Settings:** call `$.samiBtnLoading.config(options)` once, any time after samipack has loaded. Pass at least one option; the ones you leave out keep their defaults. It returns the current values. `handleSubmit` with `loadingButton: true` shows an alert toast instead of submitting if this call was never made, or was made only with invalid options.
+
+**Invalid input:** a missing or empty options object, an unknown option, an empty or invalid selector, or a `setAsGlobal` or `loading` value that is not `true` or `false` is reported and ignored, and the current settings stay as they were. The message appears as an alert toast when the toast functions are loaded, otherwise in the browser console.
+
+| Option | Type | Default | Description |
+|---|---|---|---|
+| `btnLoading` | string | `'.submitBtnLoading'` | jQuery selector of the loader element. A class name needs its leading dot. |
+| `btnDetails` | string | `'.submitBtnDetails'` | jQuery selector of the normal button label. |
+| `setAsGlobal` | boolean | `false` | `true` shows the loader automatically when any form on the page is submitted. |
+
+```javascript
+$.samiBtnLoading.config({
+    btnLoading: '.submitBtnLoading',
+    btnDetails: '.submitBtnDetails',
+    setAsGlobal: true
+});
+```
+
+**With `setAsGlobal: true`** you write no submit handler for the loader. A normal form keeps its loader until the next page loads. A form whose submit is cancelled by a script, such as an AJAX form, has its button reset straight away; for those, use `loadingButton: true` in `handleSubmit` or call `samiBtnLoading` yourself.
+
+**Usage Example:**
+
+```javascript
+// One form, without setAsGlobal.
+$(document).on('submit', '#myForm', function () {
+    $(this).samiBtnLoading(true);
+});
+
+// Your own AJAX call.
+$.ajax({
+    url: url,
+    beforeSend: function () { $('#myForm').samiBtnLoading(true); },
+    complete: function () { $('#myForm').samiBtnLoading(false); }
+});
+```
 
 ---
 

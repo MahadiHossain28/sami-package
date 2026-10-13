@@ -1,22 +1,41 @@
 // sami-toaster-services.js
 (function ($) {
+    let defaults = {
+        cus_toast_time: 5000,
+        cus_toast_top: "25px",
+        cus_toast_bg: "#f2f2f2",
+        cus_toast_border: "#008080",
+        cus_toast_success_bg: "#198754",
+        cus_toast_success_icon: "#ffffff",
+        cus_toast_alert_bg: "#b3a022",
+        cus_toast_alert_icon: "#1b1b1b",
+        cus_toast_error_bg: "#dc3545",
+        cus_toast_error_icon: "#ffffff",
+        cus_toast_text: "#666666",
+    };
+
+    $.samiToast = {
+        config: function (options) {
+            if (options) {
+                let css = {};
+                $.each(defaults, function (key, defaultValue) {
+                    if (Object.prototype.hasOwnProperty.call(options, key)) {
+                        defaults[key] = options[key];
+                    }
+                    if (key !== "cus_toast_time") {
+                        css["--" + key] = defaults[key];
+                    }
+                });
+                $(":root").css(css);
+            }
+            return $.extend({}, defaults);
+        },
+    };
+})(jQuery);
+
+(function ($) {
     $.fn.cus_toast_auto = function (options) {
-        let settings = $.extend(
-            {
-                cus_toast_time: 5000,
-                cus_toast_top: "25px",
-                cus_toast_bg: "#f2f2f2",
-                cus_toast_border: "#008080",
-                cus_toast_success_bg: "#198754",
-                cus_toast_success_icon: "#ffffff",
-                cus_toast_alert_bg: "#b3a022",
-                cus_toast_alert_icon: "#1b1b1b",
-                cus_toast_error_bg: "#dc3545",
-                cus_toast_error_icon: "#ffffff",
-                cus_toast_text: "#666666",
-            },
-            options
-        );
+        let settings = $.extend({}, $.samiToast.config(), options);
 
         let progress_time = 300;
         let end_time = settings.cus_toast_time + progress_time;
@@ -93,7 +112,7 @@
         let settings = $.extend(
             {
                 cus_toast_status: 'success',
-                cus_toast_time: 5000,
+                cus_toast_time: $.samiToast.config().cus_toast_time,
                 cus_toast_msg: "Hello",
             },
             options
@@ -204,6 +223,132 @@
 
             clearTimeout(t_timer1);
             clearTimeout(t_timer2);
+        });
+    };
+})(jQuery);
+
+
+// sami-btn-loading.js
+(function ($) {
+    // Selectors samiBtnLoading looks for inside the form.
+    let defaults = {
+        btnLoading: '.submitBtnLoading',
+        btnDetails: '.submitBtnDetails',
+        setAsGlobal: false, // true: show the loader on every form submit
+    };
+
+    const P = "samiBtnLoading";
+
+    // Set once config() has accepted a set of options.
+    let configured = false;
+
+    function fail(msg) {
+        throw new Error(`${P}: ${msg}`);
+    }
+
+    // This file also ships on its own, so it cannot rely on $.samiValidate or on the toaster being loaded.
+    function report(error) {
+        if ($.fn.sami_Toast_Append) {
+            $(document).sami_Toast_Append({
+                cus_toast_status: 'alert',
+                cus_toast_time: 3000,
+                cus_toast_msg: error.message
+            });
+        } else {
+            console.error(error.message);
+        }
+    }
+
+    function validateConfig(options) {
+        if (options === null || typeof options !== "object" || Object.keys(options).length == 0 || Array.isArray(options)) {
+            fail("config options must be an object.");
+        }
+
+        $.each(options, function (key) {
+            if (!Object.prototype.hasOwnProperty.call(defaults, key)) {
+                fail(`Unknown config option '${key}'. Use ${Object.keys(defaults).join(', ')}.`);
+            }
+        });
+
+        ['btnLoading', 'btnDetails'].forEach(function (name) {
+            if (!Object.prototype.hasOwnProperty.call(options, name)) return;
+
+            const selector = options[name];
+            if (typeof selector !== "string" || selector.trim() === "") {
+                fail(`${name} must be a non-empty selector string, e.g. '${defaults[name]}'.`);
+            }
+            try {
+                $('<div>').find(selector);
+            } catch (e) {
+                fail(`${name} '${selector}' is not a valid selector.`);
+            }
+        });
+
+        if (Object.prototype.hasOwnProperty.call(options, 'setAsGlobal') && typeof options.setAsGlobal !== "boolean") {
+            fail("setAsGlobal must be true or false.");
+        }
+    }
+
+    $.samiBtnLoading = {
+        config: function (options) {
+            // Invalid options change nothing: the current settings stay in place.
+            try {
+                validateConfig(options);
+            } catch (error) {
+                report(error);
+                return $.extend({}, defaults);
+            }
+
+            $.each(defaults, function (key) {
+                if (Object.prototype.hasOwnProperty.call(options, key)) {
+                    defaults[key] = options[key];
+                }
+            });
+            configured = true;
+
+            $(document).off('submit.samiBtnLoading');
+            if (defaults.setAsGlobal === true) {
+                $(document).on('submit.samiBtnLoading', 'form', function (e) {
+                    // Already cancelled by another script: no page load will follow to reset the button.
+                    let form = $(this);
+                    setTimeout(function() {
+                        if (e.isDefaultPrevented()){
+                            form.samiBtnLoading(false);
+                        }else{
+                            console.log("test")
+                            form.samiBtnLoading(true);
+                        };
+                    },0);
+                });
+            }
+            return $.extend({}, defaults);
+        },
+
+        isConfigured: function () {
+            return configured;
+        },
+    };
+
+    // Puts a form's submit button into (true) or out of (false) its loading state.
+    $.fn.samiBtnLoading = function (loading) {
+        if (loading !== undefined && typeof loading !== "boolean") {
+            report(new Error(`${P}: loading must be true or false.`));
+            return this;
+        }
+
+        loading = loading !== false;
+
+        return this.each(function () {
+            const form = $(this);
+            const btnLoading = form.find(defaults.btnLoading);
+            let btnDetails = $(this).find(defaults.btnDetails);
+
+            form.find('button[type="submit"]').prop('disabled', loading);
+
+            if (btnLoading.length) {
+                btnLoading.toggle(loading);
+                btnDetails.toggle(!loading);
+            }
         });
     };
 })(jQuery);
@@ -425,6 +570,14 @@
 
         modalHelper: function (plugin) {
             if (!$.samiModal) fail(plugin, "sami-modal.js is not loaded.");
+        },
+
+        // The submit button loader must be loaded and set up with $.samiBtnLoading.config().
+        btnLoadingHelper: function (plugin) {
+            if (!$.samiBtnLoading || !$.fn.samiBtnLoading) fail(plugin, "sami-btn-loading.js is not loaded.");
+            if (!$.samiBtnLoading.isConfigured()) {
+                fail(plugin, "loadingButton is true, but $.samiBtnLoading.config() has not been called with valid options.");
+            }
         }
     };
 
@@ -545,6 +698,9 @@
             ['beforeSendCallback', 'successCallback', 'completeCallBack'].forEach(function (name) {
                 check.func(P, name, settings[name]);
             });
+
+            check.bool(P, "loadingButton", settings.loadingButton);
+            if (settings.loadingButton) check.btnLoadingHelper(P);
 
             return { url: url, methodType: methodType, modalInfo: modalInfo, confirmOptions: $.samiValidate.normalizeConfirm(P, settings.confirm) };
         },
@@ -713,19 +869,23 @@
 (function ($) {
     $.fn.handleSubmit = function (formData, options) {
 
-        try {
+        const form = $(this);
 
-            const settings = $.extend({
-                modalId: null,
-                listName: null,
-                classWithId: null,
-                methodType: 'POST',
-                samiToastDuration: 3000,
-                beforeSendCallback: null,
-                successCallback: null,
-                completeCallBack: null,
-                confirm: null,          // true, or { msg, note, confirmLabel, closeLabel, icon, ... }
-            }, options);
+        // Outside the try so the catch can read it.
+        const settings = $.extend({
+            modalId: null,
+            listName: null,
+            classWithId: null,
+            methodType: 'POST',
+            samiToastDuration: 3000,
+            beforeSendCallback: null,
+            successCallback: null,
+            completeCallBack: null,
+            confirm: null,          // true, or { msg, note, confirmLabel, closeLabel, icon, ... }
+            loadingButton: false    // true: run samiBtnLoading on the form during the request
+        }, options);
+
+        try {
 
             /*
             |--------------------------------------------------------------------------
@@ -751,6 +911,10 @@
                     cache: false,
 
                     beforeSend: function () {
+                        if(settings.loadingButton){
+                            form.samiBtnLoading(true);
+                        }
+
                         if (typeof settings.beforeSendCallback === "function") {
                             settings.beforeSendCallback();
                         }
@@ -808,6 +972,10 @@
                     },
 
                     complete: function () {
+                        if(settings.loadingButton){
+                            form.samiBtnLoading(false);
+                        }
+
                         if (typeof settings.completeCallBack === "function") {
                             settings.completeCallBack();
                         }
@@ -825,6 +993,10 @@
 
 
         } catch (error) {
+
+            if (settings.loadingButton === true && $.fn.samiBtnLoading) {
+                form.samiBtnLoading(false);
+            }
 
             $(document).sami_Toast_Append({
                 cus_toast_status: 'alert',

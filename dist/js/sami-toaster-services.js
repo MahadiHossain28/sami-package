@@ -1,21 +1,40 @@
 (function ($) {
+    let defaults = {
+        cus_toast_time: 5000,
+        cus_toast_top: "25px",
+        cus_toast_bg: "#f2f2f2",
+        cus_toast_border: "#008080",
+        cus_toast_success_bg: "#198754",
+        cus_toast_success_icon: "#ffffff",
+        cus_toast_alert_bg: "#b3a022",
+        cus_toast_alert_icon: "#1b1b1b",
+        cus_toast_error_bg: "#dc3545",
+        cus_toast_error_icon: "#ffffff",
+        cus_toast_text: "#666666",
+    };
+
+    $.samiToast = {
+        config: function (options) {
+            if (options) {
+                let css = {};
+                $.each(defaults, function (key, defaultValue) {
+                    if (Object.prototype.hasOwnProperty.call(options, key)) {
+                        defaults[key] = options[key];
+                    }
+                    if (key !== "cus_toast_time") {
+                        css["--" + key] = defaults[key];
+                    }
+                });
+                $(":root").css(css);
+            }
+            return $.extend({}, defaults);
+        },
+    };
+})(jQuery);
+
+(function ($) {
     $.fn.cus_toast_auto = function (options) {
-        let settings = $.extend(
-            {
-                cus_toast_time: 5000,
-                cus_toast_top: "25px",
-                cus_toast_bg: "#f2f2f2",
-                cus_toast_border: "#008080",
-                cus_toast_success_bg: "#198754",
-                cus_toast_success_icon: "#ffffff",
-                cus_toast_alert_bg: "#b3a022",
-                cus_toast_alert_icon: "#1b1b1b",
-                cus_toast_error_bg: "#dc3545",
-                cus_toast_error_icon: "#ffffff",
-                cus_toast_text: "#666666",
-            },
-            options
-        );
+        let settings = $.extend({}, $.samiToast.config(), options);
 
         let progress_time = 300;
         let end_time = settings.cus_toast_time + progress_time;
@@ -92,7 +111,7 @@
         let settings = $.extend(
             {
                 cus_toast_status: 'success',
-                cus_toast_time: 5000,
+                cus_toast_time: $.samiToast.config().cus_toast_time,
                 cus_toast_msg: "Hello",
             },
             options
