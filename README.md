@@ -17,13 +17,13 @@ The AJAX functions follow Laravel conventions: a `<meta name="csrf-token">` tag,
 1. Add the CSS:
 
 ```html
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/MahadiHossain28/samiPackage/dist/css/samipack.min.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/MahadiHossain28/sami-package/dist/css/samipack.min.css">
 ```
 
 2. Add the JS, after jQuery. For everything:
 
 ```html
-<script src="https://cdn.jsdelivr.net/gh/MahadiHossain28/samiPackage/dist/js/sami-all.min.js"></script>
+<script src="https://cdn.jsdelivr.net/gh/MahadiHossain28/sami-package/dist/js/sami-all.min.js"></script>
 ```
 
 Or include only the services you need:
